@@ -1,0 +1,10 @@
+- name: Add gpg keys for authenticating docker package
+  apt_key:
+    url: "{{ DOCKER_API_GPG }}"
+    state: present
+
+- name: Add gpg keys for authenticating kubernetes packages
+  apt_key:
+    url: "{{ KUBERNETES_APT_GPG }}"
+    state: present
+    
