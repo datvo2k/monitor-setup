@@ -1,10 +1,118 @@
-- name: Add gpg keys for authenticating docker package
-  apt_key:
-    url: "{{ DOCKER_API_GPG }}"
-    state: present
+- hosts: all
+  # become means be superuser
+  become: true
+  remote_user: ubuntu
+  tasks: 
+  - name: Install packages that allow apt to be used over HTTPS
+    apt:
+      name: "{{ packages }}"
+      state: present
+      update_cache: yes
+    vars:
+      packages:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg-agent
+      - software-properties-common
+      - sshpass
+      - pip
+      - python-setuptools
+      - aptitude
 
-- name: Add gpg keys for authenticating kubernetes packages
-  apt_key:
-    url: "{{ KUBERNETES_APT_GPG }}"
-    state: present
+  - name: Add an apt signing key for Docker
+    when: ansible_os_family == "Debian"
+    apt_key:
+      url: https://download.docker.com/linux/ubuntu/gpg
+      state: present
+
+  - name: Add apt repository for stable version
+    when: ansible_os_family == "Debian"
+    apt_repository:
+      repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+      state: present
+
+  - name: Install docker and its dependecies
+    when: ansible_os_family == "Debian"
+    apt:
+      name: "{{ packages }}"
+      state: present
+      update_cache: yes
+    vars:
+      packages:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+
+  - name: verify docker installed, enabled, and started
+    service:
+      name: docker
+      state: started
+      enabled: yes
+
+  - name: Remove swapfile form /etc/fstab
+    mount:
+      name: "{{ item }}"
+      fstype: swap
+      state: absent
+    with_items:
+    - swap
+    - none
     
+  - name: Disable swap
+    command: swapoff -a
+    when: ansible_swaptotal_mb >= 0
+
+  - name: Add an apt signing key for Kubernetes
+    apt_key:
+      url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+      state: present
+
+  - name: Adding apt repository for Kubernetes
+    apt_repository:
+      repo: deb https://apt.kubernetes.io/ kubernetes-focal main
+      state: present
+      filename: kubernetes.list
+  
+  - name: Install Kubernetes binaries
+    apt: 
+      name: "{{ packages }}"
+      state: present
+      update_cache: yes
+    vars:
+      packages:
+        # it is usually recommended to specify which version you want to install
+        - kubelet=1.28.4-00
+        - kubeadm=1.28.4-00
+        - kubectl=1.28.4-00
+        
+  - name: hold kubernetes binary versions (prevent from being updated)
+    dpkg_selections:
+      name: "{{ item }}"
+      selection: hold
+    loop:
+      - kubelet
+      - kubeadm
+      - kubectl
+        
+# this has to do with nodes having different internal/external/mgmt IPs
+# {{ node_ip }} comes from vagrant, which I'm not using yet
+#  - name: Configure node ip - 
+#    lineinfile:
+#      path: /etc/default/kubelet
+#      line: KUBELET_EXTRA_ARGS=--node-ip={{ node_ip }}
+
+  - name: Restart kubelet
+    service:
+      name: kubelet
+      daemon_reload: yes
+      state: restarted
+      
+  - name: add ubuntu user to docker
+    user:
+      name: ubuntu
+      group: docker
+  
+  - name: reboot to apply swap disable
+    reboot:
+      reboot_timeout: 180 #allow 3 minutes for reboot to happen
