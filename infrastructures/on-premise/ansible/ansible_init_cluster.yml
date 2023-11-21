@@ -1,5 +1,0 @@
-- hosts: kube_server
-  become: true
-  remote_user: ubuntu
-
-  
