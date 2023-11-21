@@ -1,6 +1,8 @@
 [Unit]
 Description=Docker Engine
 After=network.target
+After=network.target docker.socket containerd.service
+BindsTo=containerd.service
 
 [Service]
 Type=notify
