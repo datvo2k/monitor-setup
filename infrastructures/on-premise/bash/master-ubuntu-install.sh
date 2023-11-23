@@ -18,7 +18,7 @@ MASTER_NODES="${MASTER_NODES:-}"
 WORKER_NODES="${WORKER_NODES:-}"
 
 ######################################################################################################
-
+# SSH config
 SSH_USER="${SSH_USER:-root}"
 SSH_PASSWORD="${SSH_PASSWORD:-}"
 SSH_PRIVATE_KEY="${SSH_PRIVATE_KEY:-}"
@@ -28,6 +28,24 @@ SUDO_USER="${SUDO_USER:-root}"
 ######################################################################################################
 
 HOSTNAME_PREFIX="${HOSTNAME_PREFIX:-k8s}"
+
+######################################################################################################
+
+CONFIGURE_TCP_IP_SETTING=false
+INTERFACE="eth0"
+IP_ADDRESS=""
+NETMASK=""
+DEFAULT_GATEWAY=""
+DNS_SERVER=("8.8.8.8" "4.4.4.4")	# DNS Google
+DNS_SEARCH=("domain.local")
+
+######################################################################################################
+# Kubernetes Storage Classes
+NFS_INSTALL_SERVER=true
+NFS_SERVER=$HOSTNAME
+NFS_SHARE_PATH="/share/nfs"
+NFS_
+
 
 # check the OS
 os=$(cat /etc/os-release | grep -o "Ubuntu")
@@ -45,3 +63,4 @@ if [ "$os" == "Ubuntu" ]; then
 else
 	exit 0
 fi
+
