@@ -32,11 +32,6 @@ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubun
 sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 
-containerd config default > /etc/containerd/config.toml
-sed -i -e 's/systemd_cgroup = false/systemd_cgroup = true/' /etc/containerd/config.toml
-
-sudo systemctl restart containerd
-
 cat <<EOF | sudo tee /etc/docker/daemon.json
 {
   "exec-opts": ["native.cgroupdriver=systemd"],
