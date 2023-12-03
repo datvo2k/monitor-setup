@@ -32,6 +32,11 @@ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubun
 sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 
+containerd config default > /etc/containerd/config.toml
+sed -i -e 's/systemd_cgroup = false/systemd_cgroup = true/' /etc/containerd/config.toml
+
+sudo systemctl restart containerd
+
 cat <<EOF | sudo tee /etc/docker/daemon.json
 {
   "exec-opts": ["native.cgroupdriver=systemd"],
@@ -45,14 +50,15 @@ EOF
 
 sudo systemctl daemon-reload
 sudo systemctl restart docker
-
+sudo mkdir -p /etc/apt/keyrings
 # install kubeadm, kubectl, kubelet
 curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-archive-keyring.gpg
 
 echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
 
-udo apt-get update -y
-sudo apt-get install -y kubelet="$KUBERNETES_VERSION" kubectl="$KUBERNETES_VERSION" kubeadm="$KUBERNETES_VERSION"
+sudo apt-get update -y
+sudo apt-get install -y kubelet kubectl kubeadm
+sudo apt-mark hold kubelet kubeadm kubectl
 sudo apt-get update -y
 sudo apt-get install -y jq
 
