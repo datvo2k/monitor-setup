@@ -6,15 +6,7 @@ set -euxo pipefail
 
 NODENAME=$(hostname -s)
 
-sudo rm /etc/containerd/config.toml
-sudo systemctl restart containerd
-sudo systemctl restart kubelet
-
 sudo kubeadm config images pull
-
-# open port
-sudo ufw allow 6443/tcp
-sudo ufw allow 6443/udp
 
 echo "Preflight Check Passed: Downloaded All Required Images"
 

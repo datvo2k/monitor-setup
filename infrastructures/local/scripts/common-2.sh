@@ -20,9 +20,24 @@ sudo systemctl restart systemd-resolved
 # disable swap
 sudo swapoff -a
 
+# open port
+sudo ufw allow 6443/tcp
+sudo ufw allow 6443/udp
+sudo ufw allow 6784/tcp
+sudo ufw allow 6784/udp
+
 # keeps the swap off during reboot
 (crontab -l 2>/dev/null; echo "@reboot /sbin/swapoff -a") | crontab - || true
 sudo apt-get update -y
+
+# Brige mode
+cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-iptables  = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.ipv4.ip_forward                 = 1
+EOF
+ 
+sudo sysctl --system
 
 # install docker 
 sudo apt-get update
@@ -56,6 +71,10 @@ sudo apt-get install -y kubelet kubectl kubeadm
 sudo apt-mark hold kubelet kubeadm kubectl
 sudo apt-get update -y
 sudo apt-get install -y jq
+
+sudo rm /etc/containerd/config.toml
+sudo systemctl restart containerd
+sudo systemctl restart kubelet
 
 local_ip="$(ip --json a s | jq -r '.[] | if .ifname == "eth1" then .addr_info[] | if .family == "inet" then .local else empty end else empty end')"
 
