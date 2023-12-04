@@ -21,10 +21,8 @@ sudo systemctl restart systemd-resolved
 sudo swapoff -a
 
 # open port
-sudo ufw allow 6443/tcp
-sudo ufw allow 6443/udp
-sudo ufw allow 6784/tcp
-sudo ufw allow 6784/udp
+sudo ufw allow 6443
+sudo ufw allow 6784
 
 # keeps the swap off during reboot
 (crontab -l 2>/dev/null; echo "@reboot /sbin/swapoff -a") | crontab - || true
@@ -73,6 +71,48 @@ sudo apt-get update -y
 sudo apt-get install -y jq
 
 sudo rm /etc/containerd/config.toml
+
+cat <<EOF | sudo tee /etc/containerd/config.toml
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+
+#       http://www.apache.org/licenses/LICENSE-2.0
+
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
+#disabled_plugins = ["cri"]
+#root = "/var/lib/containerd"
+#state = "/run/containerd"
+#subreaper = true
+#oom_score = 0
+
+#[grpc]
+#  address = "/run/containerd/containerd.sock"
+#  uid = 0
+#  gid = 0
+
+#[debug]
+#  address = "/run/containerd/debug.sock"
+#  uid = 0
+#  gid = 0
+#  level = "info"
+
+[plugins]
+  [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+
+  [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+      SystemdCgroup = true
+
+
+  [plugins."io.containerd.grpc.v1.cri"]
+  sandbox_image = "registry.k8s.io/pause:3.2"
+EOF
+
 sudo systemctl restart containerd
 sudo systemctl restart kubelet
 

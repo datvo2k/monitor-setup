@@ -60,5 +60,4 @@ sudo apt-get install helm
 
 helm repo add stable https://charts.helm.sh/stable
 
-
-
+sudo systemctl restart kubelet.service
