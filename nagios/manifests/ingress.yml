@@ -1,0 +1,38 @@
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: nagios-ingress
+#   namespace: monitoring
+#   annotations:
+#     traefik.ingress.kubernetes.io/router.entrypoints: web
+# spec:
+#   rules:
+#   - host: nagios.info
+#     http:
+#       paths:
+#       - path: /
+#         pathType: Prefix
+#         backend:
+#           service:
+#             name: nagios-service
+#             port:
+#               number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nagios-ingress
+  namespace: monitoring
+spec:
+  rules:
+  - host: nagios.info
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nagios-service
+            port:
+              number: 80
+  ingressClassName: nginx
