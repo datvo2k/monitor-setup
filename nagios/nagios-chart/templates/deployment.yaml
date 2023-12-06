@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.name }}
+	namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.app.name }}
+    env: {{ .Values.app.environment }}
+    owner: {{ .Values.app.owner }}
+spec:
+	selector:
+		matchLabels:
+			app: {{ .Values.app.name }}
+	replicas: {{ .Values.replicaCount }}
+	strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+	template:
+    metadata:
+      labels:
+        app: {{ .Values.app.name }}
+        env: {{ .Values.app.environment }}
+		spec:
+			containers:
+      - name:  {{ .Values.app.name }}
+        image:  {{ .Values.image.repository }}:{{ .Values.image.tag }}
+				imagePullPolicy: {{ .Values.image.pullPolicy }}
+				resources:
+					requests:
+						cpu: {{ .Values.resources.cpu }}
+						memory: {{ .Values.resources.memory }}
+					limits:
+						cpu: {{ .Values.resources.cpu }}
+						memory: {{ .Values.resources.memory }}
+				livenessProbe:
+					tcpSocket:
+						port: {{ .Values.liveness.port }}
+					initialDelaySeconds: {{ .Values.liveness.initialDelaySeconds }}
+					failureThreshold: {{ .Values.liveness.failureThreshold }}
+          successThreshold: {{ .Values.liveness.successThreshold }}
+          timeoutSeconds: {{ .Values.liveness.timeoutSeconds }}
+          periodSeconds: {{ .Values.liveness.periodSeconds }}
+				ports:
+        - containerPort:  80
+			restartPolicy: Always
+
