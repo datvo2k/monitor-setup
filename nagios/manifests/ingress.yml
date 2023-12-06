@@ -23,6 +23,16 @@ kind: Ingress
 metadata:
   name: nagios-ingress
   namespace: monitoring
+  annotations:
+    # enable owasp rules protection
+    nginx.ingress.kubernetes.io/enable-owasp-core-rules: "true"
+    
+    # basic DoS protection
+    nginx.ingress.kubernetes.io/limit-rps: "10"
+    
+    # enable support for url-rewrite with regex support
+    nginx.ingress.kubernetes.io/rewrite-target: "/"
+    nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   rules:
   - host: nagios.info
