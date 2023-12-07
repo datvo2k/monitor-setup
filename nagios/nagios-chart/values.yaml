@@ -10,7 +10,6 @@ app:
 image:
   repository: jasonrivers/nagios
   tag: "4.4.14"
-  pullPolicy: IfNotPresent
 
 resources:
   cpu: 100m
@@ -31,3 +30,6 @@ service:
   targetPort: 80
   nodePort: 30008
 
+ingress:
+  host: nagios.info
+  port: 80
