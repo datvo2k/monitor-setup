@@ -1,0 +1,35 @@
+replicaCount: 4
+
+namespace: monitoring
+
+app:
+  name: nagios-monitor
+  environment: dev
+  owner: Brian-Vo
+
+image:
+  repository: jasonrivers/nagios
+  tag: "4.4.14"
+
+resources:
+  cpu: 100m
+  memory: 100Mi
+
+liveness:
+  initialDelaySeconds: 10
+  port: 80
+  failureThreshold: 3
+  successThreshold: 1
+  timeoutSeconds: 3
+  periodSeconds: 5
+
+service:
+  type: NodePort
+  name: http
+  port: 80
+  targetPort: 80
+  nodePort: 30008
+
+ingress:
+  host: nagios.info
+  port: 80
